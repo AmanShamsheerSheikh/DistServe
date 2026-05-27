@@ -1,24 +1,21 @@
 from worker.celery_app import celery_app
 from db.queries import update_job
-import psycopg2
-from dotenv import load_dotenv
-import os
+from psycopg2 import pool
+from contants import settings
 
-load_dotenv()
-
-db_user = os.environ.get("POSTGRES_USER")
-db_password = os.environ.get("POSTGRES_PASSWORD")
-db_name = os.environ.get("POSTGRES_DB")
+db_pool = pool.ThreadedConnectionPool(
+    minconn=2,
+    maxconn=10,
+    user=settings.POSTGRES_USER,
+    password=settings.POSTGRES_PASSWORD,
+    host=settings.POSTGRES_HOST,
+    port=settings.PGBOUNCER_PORT,
+    database=settings.POSTGRES_DB,
+)
 
 @celery_app.task
 def run_ml_training_job(job_id: int, job_name: str):
-    conn = psycopg2.connect(
-        user=db_user,
-        password=db_password,
-        host='localhost',
-        port=6432,
-        database=db_name,
-    )
+    conn = db_pool.getconn()
     try:
         update_job(conn, 'STARTED', job_id)
         conn.commit()
@@ -33,4 +30,4 @@ def run_ml_training_job(job_id: int, job_name: str):
         update_job(conn, 'FAILED', job_id)
         conn.commit()
     finally:
-        conn.close()
+        db_pool.putconn(conn)

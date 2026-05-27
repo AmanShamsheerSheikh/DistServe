@@ -1,19 +1,13 @@
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, HTTPException
 import asyncpg
 import redis.asyncio as redis
 from db.db_connection import get_db_connection, get_redis
 from db.queries import add_job
 from worker.tasks import run_ml_training_job
 from pydantic import BaseModel
-from dotenv import load_dotenv
-import os
-
-load_dotenv()
-
-db_user = os.environ.get("POSTGRES_USER")
-db_password = os.environ.get("POSTGRES_PASSWORD")
-db_name = os.environ.get("POSTGRES_DB")
+from contants import settings
+from api.calls import fetch_runpod_gpu_catalog
 
 class TrainingRequest(BaseModel):
     job_name: str
@@ -23,21 +17,15 @@ async def lifespan(app: FastAPI):
     print("Starting up: Initializing database pools...")
     
     app.state.db_pool = await asyncpg.create_pool(
-        user=db_user,
-        password=db_password,
-        host='localhost',
-        port=6432,
-        database=db_name,
+        user=settings.POSTGRES_USER,
+        password=settings.POSTGRES_PASSWORD,
+        host=settings.POSTGRES_HOST,
+        port=settings.PGBOUNCER_PORT,
+        database=settings.POSTGRES_DB,
         min_size=5,
         max_size=20,
         statement_cache_size=0
     )
-
-    with open("db/sp/create_table.sql", "r") as f:
-        schema_sql = f.read()
-
-    async with app.state.db_pool.acquire() as connection:
-        await connection.execute(schema_sql)
     
     redis_pool = redis.ConnectionPool(
         host='localhost',
@@ -86,3 +74,9 @@ async def start_training(trainingRequest: TrainingRequest, db: asyncpg.Connectio
         "celery_task_id": task.id
     }
     
+@app.get("/get_gpu_list")
+async def get_gpus():
+    gpu_catalog = fetch_runpod_gpu_catalog()
+    if "error" in gpu_catalog:
+        raise HTTPException(status_code=500, detail=gpu_catalog["error"])
+    return gpu_catalog
