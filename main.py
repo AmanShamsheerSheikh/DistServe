@@ -1,14 +1,14 @@
 import asyncio
 from contextlib import asynccontextmanager
 import asyncpg
-from fastapi import Depends, FastAPI
+from fastapi import Depends, FastAPI, HTTPException, Header
 from fastapi.responses import StreamingResponse
 from vllm import SamplingParams
 import gpu_worker.engine as engine_module
-from gpu_worker.schemas import GenerateRequest
+from gpu_worker.schemas import GenerateRequest, RegisterRequest
 from config.settings import llm_settings
 from db import init_db
-from db.queries import add_job, update_job
+from db.queries import add_job, update_job, register_user, get_user
 from db.connections import get_db_connection
 from config.enums import JobStatus
 
@@ -45,18 +45,28 @@ async def token_generator(prompt, job_id, db):
             if new_token:
                 yield f"data: {new_token}\n\n"
         yield f"data: [DONE]\n\n"
-        await update_job(db, JobStatus.DONE.value, job_id)
+        await update_job(db, JobStatus.DONE.value, job_id, previous_text)
     except asyncio.CancelledError:
         await engine.abort(job_id)
         raise
     except Exception as e:
         yield f"data: [ERROR] {str(e)}\n\n"
-        await update_job(db, JobStatus.FAILED.value, job_id)
+        await update_job(db, JobStatus.FAILED.value, job_id, previous_text, str(e))
 
 @app.post("/generate")
-async def generate(request: GenerateRequest, db: asyncpg.Connection = Depends(get_db_connection)):
-    id = await add_job(db, JobStatus.PENDING.value, "0", request.prompt)
+async def generate(request: GenerateRequest, x_api_key: str = Header(alias="X-API-Key"), db: asyncpg.Connection = Depends(get_db_connection)):
+    user_name = await get_user(db, x_api_key)
+    if not user_name:
+        return HTTPException(status_code=401, detail="Invalid API key")
+    id = await add_job(db, JobStatus.PENDING.value, "0")
     return StreamingResponse(
         token_generator(request.prompt, id, db),
         media_type="text/event-stream"
     )
+
+@app.post("/register_user")
+async def register(request: RegisterRequest, db: asyncpg.Connection = Depends(get_db_connection)):
+    api_key = await register_user(db, request.user_name)
+    return {
+        "api_key": api_key
+    }
