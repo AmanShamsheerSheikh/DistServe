@@ -1,4 +1,4 @@
 from pydantic import BaseModel
 
-class generateRequest(BaseModel):
+class GenerateRequest(BaseModel):
     prompt: str
