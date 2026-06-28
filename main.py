@@ -34,7 +34,7 @@ async def token_generator(prompt, job_id, db):
     tokenizer = engine_module.get_tokenizer()
     max_prompt_tokens = len(tokenizer.encode(prompt))
     max_tokens = min(context_length - max_prompt_tokens, llm_settings.max_tokens)
-    sampling_params = SamplingParams(max_tokens=max_tokens, temperature=llm_settings.max_tokens)
+    sampling_params = SamplingParams(max_tokens=max_tokens, temperature=llm_settings.temperature)
     engine = engine_module.get_engine()
     previous_text = ""
     try:
