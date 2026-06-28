@@ -56,7 +56,6 @@ async def token_generator(prompt, job_id, db):
 @app.post("/generate")
 async def generate(request: GenerateRequest, db: asyncpg.Connection = Depends(get_db_connection)):
     id = await add_job(db, JobStatus.PENDING.value, "0", request.prompt)
-    print("job added: ", id)
     return StreamingResponse(
         token_generator(request.prompt, id, db),
         media_type="text/event-stream"
