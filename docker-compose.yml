@@ -29,8 +29,8 @@ services:
     depends_on:
       - postgres
 
-  # redis:
-  #   image: redis:7
-  #   container_name: redis-broker
-  #   ports:
-  #     - "6379:6379"
+  redis:
+    image: redis:7
+    container_name: redis-broker
+    ports:
+      - "6379:6379"

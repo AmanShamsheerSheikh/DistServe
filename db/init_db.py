@@ -1,6 +1,7 @@
 import asyncpg
 from fastapi import FastAPI
 from config.settings import pg_settings
+import redis.asyncio as redis
 
 
 async def initialize_db(app: FastAPI):
@@ -14,3 +15,12 @@ async def initialize_db(app: FastAPI):
         max_size=pg_settings.PGBOUNCER_MAX_CONNECTIONS,
         statement_cache_size=0
     )
+
+    redis_pool = redis.ConnectionPool(
+        host='localhost',
+        port=6379,
+        db=0,
+        password=None,
+        decode_responses=True
+    )
+    app.state.redis = redis.Redis(connection_pool=redis_pool)

@@ -9,8 +9,11 @@ from gpu_worker.schemas import GenerateRequest, RegisterRequest
 from config.settings import llm_settings
 from db import init_db
 from db.queries import add_job, update_job, register_user, get_user
-from db.connections import get_db_connection
+from db.connections import get_db_connection, get_redis
 from config.enums import JobStatus
+import redis.asyncio as redis
+from middleware.rate_limiter import RateLimitMiddleWare
+from middleware.api_auth import AuthMiddleWare
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -20,9 +23,11 @@ async def lifespan(app: FastAPI):
     yield
     print("Shutting down: Closing database pools...")
     await app.state.db_pool.close()
-
+    await app.state.redis.aclose()
 
 app = FastAPI(lifespan=lifespan)
+app.add_middleware(RateLimitMiddleWare)
+app.add_middleware(AuthMiddleWare)
 
 @app.get("/")
 async def read_root():
@@ -54,11 +59,8 @@ async def token_generator(prompt, job_id, db):
         await update_job(db, JobStatus.FAILED.value, job_id, previous_text, str(e))
 
 @app.post("/generate")
-async def generate(request: GenerateRequest, x_api_key: str = Header(alias="X-API-Key"), db: asyncpg.Connection = Depends(get_db_connection)):
-    user_name = await get_user(db, x_api_key)
-    if not user_name:
-        return HTTPException(status_code=401, detail="Invalid API key")
-    id = await add_job(db, JobStatus.PENDING.value, "0")
+async def generate(request: GenerateRequest, db: asyncpg.Connection = Depends(get_db_connection), redis: redis.Redis = Depends(get_redis)):
+    id = await add_job(db, JobStatus.PENDING.value, "0", request.prompt)
     return StreamingResponse(
         token_generator(request.prompt, id, db),
         media_type="text/event-stream"
