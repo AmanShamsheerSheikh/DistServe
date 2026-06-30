@@ -18,7 +18,7 @@ class RateLimitMiddleWare(BaseHTTPMiddleware):
         return result
 
     async def dispatch(self, request: Request, call_next):
-        if request.url.path == "/register":
+        if request.url.path == "/register_user":
             allowed = await self.check_if_allowed(
                 request.app.state.redis, 
                 request.client.host,
