@@ -38,8 +38,14 @@ class RedisSettings(BaseSettings):
     REDIS_DB: int
     REDIS_PASSWORD: str | None
     REDIS_DECODE_RESPONSES: bool
+    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
+
+class KafkaSettings(BaseSettings):
+    KAFKA_BOOTSTRAP_SERVER: str
+    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
 llm_settings = LLMSettings()
 pg_settings = PGSettings()
 api_settings = ApiSettings()
 redis_settings = RedisSettings()
+kafka_settings = KafkaSettings()
