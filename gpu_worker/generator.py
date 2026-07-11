@@ -1,12 +1,18 @@
 import asyncio
+import logging
 from vllm import SamplingParams
-import gpu_worker.engine as engine_module
-from config.settings import llm_settings
-from db.queries import update_job
-from config.enums import JobStatus
+import engine as engine_module
+from settings import llm_settings
+from db import get_redis
+import traceback
+from discom.logger import setup_logger
 
-async def token_generator(prompt, job_id, db):
-    await update_job(db, JobStatus.RUNNING.value, job_id)
+logger = setup_logger(log_level=logging.DEBUG)
+logger = logging.LoggerAdapter(logger, {"request_id": "N/A"})
+
+async def token_generator(prompt, job_id):
+    client = get_redis()
+    stream_key = f"job:{job_id}:tokens"
     context_length = engine_module.get_context_length()
     tokenizer = engine_module.get_tokenizer()
     max_prompt_tokens = len(tokenizer.encode(prompt))
@@ -20,12 +26,18 @@ async def token_generator(prompt, job_id, db):
             new_token = current_text[len(previous_text):]
             previous_text = current_text
             if new_token:
-                yield f"data: {new_token}\n\n"
-        yield f"data: [DONE]\n\n"
-        await update_job(db, JobStatus.DONE.value, job_id, previous_text)
+                await client.xadd(stream_key, {"data": new_token})
+        await client.xadd(stream_key, {"data": "[DONE]"})
+        await client.set(f"job:{job_id}:result", previous_text, ex=21600)
+        await client.set(f"job:{job_id}:status", "DONE", ex=21600)  
     except asyncio.CancelledError:
         await engine.abort(job_id)
+        await client.xadd(stream_key, {"data": "[CANCELLED]"})
+        await client.set(f"job:{job_id}:status", "CANCELLED", ex=21600)
         raise
     except Exception as e:
-        yield f"data: [ERROR] {str(e)}\n\n"
-        await update_job(db, JobStatus.FAILED.value, job_id, previous_text, str(e))
+        tb_str = traceback.format_exc()
+        print(tb_str)
+        await client.xadd(stream_key, {"data": f"[ERROR] {str(e)}"})
+        await client.set(f"job:{job_id}:status", "FAILED")
+        await client.set(f"job:{job_id}:error", tb_str)

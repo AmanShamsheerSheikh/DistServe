@@ -1,15 +1,16 @@
 from contextlib import asynccontextmanager
 import asyncpg
 from fastapi import Depends, FastAPI
-from schemas import GenerateRequest, RegisterRequest
+from discom.constants import GenerateRequest, RegisterRequest
 from db.init_db import initialize_db
-from db.queries import add_job, register_user
-from db.connections import get_db_connection, get_redis
-from config.enums import JobStatus
+from discom.queries import add_job, register_user
+from db.connections import get_db_connection
+from discom.constants import JobStatus
 import redis.asyncio as redis
 from middleware.rate_limiter import RateLimitMiddleWare
 from middleware.api_auth import AuthMiddleWare
-from config.constants import KAFKA_INFERENCE_TOPIC, KafkaJobObject
+from discom.constants import KafkaJobObject
+from settings import kafka_settings
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -30,10 +31,10 @@ async def read_root():
     return {"Hello": "Aman Sheikh"}
 
 @app.post("/generate")
-async def generate(request: GenerateRequest, db: asyncpg.Connection = Depends(get_db_connection), redis: redis.Redis = Depends(get_redis)):
+async def generate(request: GenerateRequest, db: asyncpg.Connection = Depends(get_db_connection)):
     id = await add_job(db, JobStatus.PENDING.value, "0", request.prompt)
     producer_object: KafkaJobObject = KafkaJobObject(id=str(id), prompt=request.prompt).model_dump_json().encode("utf-8")
-    await app.state.kafka_producer.send_and_wait(KAFKA_INFERENCE_TOPIC, producer_object)
+    await app.state.kafka_producer.send_and_wait(kafka_settings.KAFKA_INFERENCE_TOPIC, producer_object)
     return {
         "job_id": id,
         "status": "queued"

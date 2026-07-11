@@ -21,3 +21,9 @@ async def get_user(conn: asyncpg.Connection, api_key: str):
         SELECT user_name from users where api_key = $1
     """
     return await conn.fetchval(query, api_key)
+
+async def update_job(conn: asyncpg.Connection, status: str, job_id: str, result: str = None , error: str = None):
+    await conn.execute(
+        "UPDATE jobs SET status = $1, result = $2, error = $3, updated_at = NOW()  WHERE id = $4",
+        status, result, error, job_id
+    )

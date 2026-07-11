@@ -1,0 +1,22 @@
+[project]
+name = "discom"
+version = "0.1.0"
+description = "Common utilities for DistServer services"
+readme = "README.md"
+requires-python = ">=3.11"
+
+dependencies = [
+    "pydantic>=2.0",
+    "pydantic-settings>=2.0",
+    "asyncpg>=0.31",
+]
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["discom*"]
+
+[tool.setuptools.package-data]
+discom = ["model.yaml"]

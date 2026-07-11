@@ -1,6 +1,6 @@
 import asyncpg
 from fastapi import FastAPI
-from config.settings import pg_settings, redis_settings, kafka_settings
+from settings import pg_settings, redis_settings, kafka_settings
 import redis.asyncio as redis
 from aiokafka import AIOKafkaProducer
 

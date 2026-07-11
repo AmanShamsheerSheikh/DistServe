@@ -2,7 +2,7 @@ from fastapi import Request
 import redis.asyncio as redis
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import Response
-from db.queries import get_user
+from discom.queries import get_user
 
 AUTH_ROUTES = ["/generate"]
 

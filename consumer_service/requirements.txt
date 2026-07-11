@@ -1,0 +1,4 @@
+-e ./distserver-common
+aiokafka==0.14.0
+asyncpg==0.31.0
+discom==0.1.0

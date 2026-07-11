@@ -1,0 +1,6 @@
+-e ./distserver-common
+pydantic_settings==2.14.2
+redis==8.0.1
+runpod==1.10.1
+transformers==5.12.1
+vllm==0.21.0

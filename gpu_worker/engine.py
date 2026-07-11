@@ -1,14 +1,17 @@
 from transformers import AutoConfig, AutoTokenizer
 from vllm import AsyncLLMEngine, AsyncEngineArgs
-from config.settings import llm_settings, api_settings
 from typing import Any
+from settings import llm_settings, api_settings
 
 engine: AsyncLLMEngine | None = None
 tokenizer: Any | None = None
 context_length: int = 0
 
 async def init_engine():
+    print("engine initialized")
     global engine, tokenizer, context_length
+    if engine is not None:
+        raise RuntimeError("init_engine() called twice — check for duplicate module imports")
     engine_args = AsyncEngineArgs(
         model=llm_settings.model_name,
         hf_token=api_settings.hf_token,

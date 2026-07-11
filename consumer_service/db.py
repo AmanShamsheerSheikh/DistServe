@@ -10,7 +10,7 @@ db_pool: Pool | None = None
 async def init_consumer():
     global consumer, db_pool
     consumer = AIOKafkaConsumer(
-        kafka_settings.KAFKA_TOPIC,
+        kafka_settings.KAFKA_INFERENCE_TOPIC,
         group_id=kafka_settings.KAFKA_GROUP_ID,
         bootstrap_servers=kafka_settings.KAFKA_BOOTSTRAP_SERVER,
         enable_auto_commit=False

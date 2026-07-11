@@ -1,0 +1,6 @@
+{
+    "python.defaultInterpreterPath": "${workspaceFolder}/env/bin/python",
+    "python.analysis.extraPaths": [
+        "${workspaceFolder}/distserver-common"
+    ]
+}
