@@ -1,5 +1,6 @@
-FROM runpod/pytorch:2.2.0-py3.10-cuda12.1.1-devel-ubuntu22.04
+FROM runpod/pytorch:2.6.0-py3.11-cuda12.8.0-devel-ubuntu22.04
 
+RUN pip install uv && uv pip install vllm --torch-backend=auto --system
 WORKDIR /app
 COPY distserver-common/ ./common/
 RUN pip install --no-cache-dir ./common

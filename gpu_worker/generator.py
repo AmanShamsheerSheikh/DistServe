@@ -15,13 +15,15 @@ async def token_generator(prompt, job_id):
     stream_key = f"job:{job_id}:tokens"
     context_length = engine_module.get_context_length()
     tokenizer = engine_module.get_tokenizer()
-    max_prompt_tokens = len(tokenizer.encode(prompt))
+    messages = [{"role": "user", "content": prompt}]
+    formatted_prompt = tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
+    max_prompt_tokens = len(tokenizer.encode(formatted_prompt))
     max_tokens = min(context_length - max_prompt_tokens, llm_settings.max_tokens)
     sampling_params = SamplingParams(max_tokens=max_tokens, temperature=llm_settings.temperature)
     engine = engine_module.get_engine()
     previous_text = ""
     try:
-        async for output in engine.generate(prompt, sampling_params=sampling_params, request_id=job_id):
+        async for output in engine.generate(formatted_prompt, sampling_params=sampling_params, request_id=job_id):
             current_text = output.outputs[0].text
             # new_token = current_text[len(previous_text):]
             previous_text = current_text
