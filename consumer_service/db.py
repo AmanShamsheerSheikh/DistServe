@@ -13,7 +13,8 @@ async def init_consumer():
         kafka_settings.KAFKA_INFERENCE_TOPIC,
         group_id=kafka_settings.KAFKA_GROUP_ID,
         bootstrap_servers=kafka_settings.KAFKA_BOOTSTRAP_SERVER,
-        enable_auto_commit=False
+        enable_auto_commit=False,
+        auto_offset_reset="earliest"
     )
     db_pool = await asyncpg.create_pool(
         user=pg_settings.POSTGRES_USER,

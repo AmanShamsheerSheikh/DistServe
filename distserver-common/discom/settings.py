@@ -47,3 +47,9 @@ class KafkaSettings(BaseSettings):
     KAFKA_INFERENCE_TOPIC: str
     KAFKA_GROUP_ID: str
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
+
+class S3Settings(BaseSettings):
+    MINIO_ROOT_PASSWORD: str
+    MINIO_ROOT_USER: str
+    S3_BUCKET: str
+    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")

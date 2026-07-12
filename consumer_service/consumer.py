@@ -2,7 +2,7 @@
 import asyncio
 import json
 from discom.constants import JobStatus
-from discom.queries import update_job
+from discom.queries import update_job, update_chunks
 import db
 
 async def consumer_requests():
@@ -14,7 +14,8 @@ async def consumer_requests():
                     msg.key, msg.value, msg.timestamp)
             request = json.loads(msg.value.decode('utf-8'))
             async with db_pool.acquire() as connection:
-                await update_job(connection, JobStatus.RUNNING.value, request["id"], None, None)               
+                await update_chunks(connection, JobStatus.RUNNING.value, request["id"], None, None)
+            await consumer.commit()      
     except Exception as e:
         print(f"Consumer loop crashed: {e}")
     finally:

@@ -1,8 +1,10 @@
 import asyncpg
 from fastapi import FastAPI
-from settings import pg_settings, redis_settings, kafka_settings
+from settings import pg_settings, redis_settings, kafka_settings, s3_settings
 import redis.asyncio as redis
 from aiokafka import AIOKafkaProducer
+import boto3
+import botocore
 
 
 async def initialize_db(app: FastAPI):
@@ -29,4 +31,17 @@ async def initialize_db(app: FastAPI):
     app.state.kafka_producer = AIOKafkaProducer(
         bootstrap_servers=kafka_settings.KAFKA_BOOTSTRAP_SERVER
     )
+
+    app.s3 = boto3.client(
+        "s3",
+        endpoint_url="http://localhost:9000",
+        aws_access_key_id="minioadmin",
+        aws_secret_access_key="minioadmin",
+    )
+
+    try:
+        app.s3.head_bucket(Bucket=s3_settings.S3_BUCKET)
+    except botocore.exceptions.ClientError:
+        app.s3.create_bucket(Bucket=s3_settings.S3_BUCKET)
+
     await app.state.kafka_producer.start()
