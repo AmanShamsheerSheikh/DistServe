@@ -1,6 +1,6 @@
 import runpod
 from engine import init_engine
-from db import init_redis
+# from db import init_redis
 from runpod.serverless.utils.rp_validator import validate
 from discom.constants import runpod_schema
 from generator import token_generator
@@ -15,10 +15,13 @@ async def handler(job):
     if "errors" in validated_input:
         return {"error": validated_input["errors"]}
 
-    await token_generator(job_input["prompt"], job_input["job_id"])
+    generated_text = await token_generator(job_input["prompt"], job_input["job_id"])
+    return {
+        "generated": generated_text
+    }
 
 async def initializations():
-    await init_redis()
+    # await init_redis()
     await init_engine()
 
 if __name__ == "__main__":

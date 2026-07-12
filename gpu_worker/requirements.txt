@@ -1,4 +1,3 @@
--e ./distserver-common
 pydantic_settings==2.14.2
 redis==8.0.1
 runpod==1.10.1

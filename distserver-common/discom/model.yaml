@@ -1,4 +1,4 @@
-model_name: "distilgpt2"
+model_name: "Qwen/Qwen2.5-0.5B-Instruct"
 temperature: 0.8
 max_tokens: 512
 gpu_memory_utilization: 0.2
