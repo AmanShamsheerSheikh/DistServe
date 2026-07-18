@@ -1,6 +1,7 @@
 from enum import Enum
 from pydantic import BaseModel
 from dataclasses import dataclass
+from typing import Any
 class JobStatus(Enum):
     PENDING = "PENDING"
     RUNNING = "RUNNING"
@@ -33,7 +34,7 @@ class RegisterRequest(BaseModel):
 class ChunkRecord:
     id: str
     document_id: str
-    address: any
+    address: Any
     chunk_index: int
     source_text: str
     status: str

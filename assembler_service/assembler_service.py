@@ -57,9 +57,10 @@ async def assemble_requests():
             output_buffer = io.BytesIO()
             translated_doc.save(output_buffer)
             output_buffer.seek(0)
-            await asyncio.to_thread(s3.upload_fileobj, io.BytesIO(output_buffer), s3_settings.S3_BUCKET, "translated/" + str(document_id))
+            s3_result_key = "translated/" + str(document_id)
+            await asyncio.to_thread(s3.upload_fileobj, output_buffer, s3_settings.S3_BUCKET, s3_result_key)
             async with pool.acquire() as connection:
-                update_job(connection, JobStatus.DONE.value, )
+                update_job(connection, JobStatus.DONE.value, document_id, s3_result_key)
     except Exception as e:
         print(f"Consumer loop crashed: {e}")
     finally:

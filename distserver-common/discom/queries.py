@@ -49,7 +49,7 @@ async def update_all_chunks(conn: asyncpg.Connection, status: str, document_id):
     )
 
 async def get_total_chunks(conn: asyncpg.Connection, document_id: str):
-    await conn.fetchval(
+    return await conn.fetchval(
         """
         Select num_chunks from jobs where document_id = $1
         """
@@ -60,7 +60,7 @@ async def get_all_chunks(conn: asyncpg.Connection, document_id: str):
         "SELECT * FROM chunks WHERE document_id = $1",
         document_id
     )
-    return [row["id"] for row in rows]
+    return rows
 
 async def bulk_insert_chunks(db: asyncpg.Connection, chunks: list[ChunkRecord]):
     await db.executemany(

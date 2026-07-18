@@ -8,7 +8,7 @@ image = (
     .entrypoint([])
     .uv_pip_install(
         "vllm==0.21.0",
-        requirements=["gpu_worker/requirements.txt"],
+        requirements=["gpu_worker_modal/requirements.txt"],
     )
     .add_local_dir("distserver-common", remote_path="/root/distserver-common", copy=True)
     .run_commands("pip install /root/distserver-common")
@@ -29,6 +29,7 @@ hf_cache_vol = modal.Volume.from_name("hf-cache", create_if_missing=True)
     timeout=600,
     secrets=[modal.Secret.from_name("distserve-env")]
 )
+@modal.concurrent(max_inputs=20)
 class GPUWorker:
     @modal.enter()
     async def start(self):

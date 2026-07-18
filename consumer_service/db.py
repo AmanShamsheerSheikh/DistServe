@@ -2,13 +2,15 @@ from aiokafka import AIOKafkaConsumer
 from asyncpg import Pool
 import asyncpg
 from settings import kafka_settings, pg_settings
+import modal
 
 
 consumer: AIOKafkaConsumer | None = None
 db_pool: Pool | None = None
+gpu_worker = None
 
-async def init_consumer():
-    global consumer, db_pool
+async def init():
+    global consumer, db_pool, gpu_worker
     consumer = AIOKafkaConsumer(
         kafka_settings.KAFKA_INFERENCE_TOPIC,
         group_id=kafka_settings.KAFKA_GROUP_ID,
@@ -27,9 +29,13 @@ async def init_consumer():
         statement_cache_size=0
     )
     await consumer.start()
+    gpu_worker = modal.Cls.from_name("distserve-gpu-worker", "GPUWorker")
 
 def get_consumer():
     return consumer
 
 def get_db_pool():
     return db_pool
+
+def get_gpu_worker():
+    return gpu_worker

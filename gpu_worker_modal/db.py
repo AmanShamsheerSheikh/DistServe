@@ -32,7 +32,7 @@ async def init_db():
     kafka_producer = AIOKafkaProducer(
         bootstrap_servers=kafka_settings.KAFKA_BOOTSTRAP_SERVER
     )
-    kafka_producer.start()
+    await kafka_producer.start()
     lua_path = os.path.join(os.path.dirname(__file__), "chunks_counter.lua")
     with open(lua_path, "r") as file:
         lua_script = file.read()
