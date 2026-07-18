@@ -4,7 +4,7 @@ import json
 from typing import List
 from docx import Document
 from discom.constants import JobStatus
-from discom.queries import update_chunks, get_all_chunks, update_job
+from discom.queries import get_all_chunks, update_job
 from db import get_consumer, get_db_pool, get_s3, init_db
 from discom.constants import ChunkRecord
 import io
@@ -60,7 +60,7 @@ async def assemble_requests():
             s3_result_key = "translated/" + str(document_id)
             await asyncio.to_thread(s3.upload_fileobj, output_buffer, s3_settings.S3_BUCKET, s3_result_key)
             async with pool.acquire() as connection:
-                update_job(connection, JobStatus.DONE.value, document_id, s3_result_key)
+                await update_job(connection, JobStatus.DONE.value, document_id, s3_result_key)
     except Exception as e:
         print(f"Consumer loop crashed: {e}")
     finally:

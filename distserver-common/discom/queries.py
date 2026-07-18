@@ -60,7 +60,18 @@ async def get_all_chunks(conn: asyncpg.Connection, document_id: str):
         "SELECT * FROM chunks WHERE document_id = $1",
         document_id
     )
-    return rows
+    return [
+        ChunkRecord(
+            id=row["id"],
+            document_id=row["document_id"],
+            address=json.loads(row["address"]) if isinstance(row["address"], str) else row["address"],
+            chunk_index=row["chunk_index"],
+            source_text=row["source_text"],
+            status=row["status"],
+            result=row["result"],
+        )
+        for row in rows
+    ]
 
 async def bulk_insert_chunks(db: asyncpg.Connection, chunks: list[ChunkRecord]):
     await db.executemany(
