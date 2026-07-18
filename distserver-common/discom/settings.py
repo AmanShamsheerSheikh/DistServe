@@ -46,10 +46,12 @@ class KafkaSettings(BaseSettings):
     KAFKA_BOOTSTRAP_SERVER: str
     KAFKA_INFERENCE_TOPIC: str
     KAFKA_GROUP_ID: str
+    KAFKA_JOIN_TOPIC: str
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
 class S3Settings(BaseSettings):
     MINIO_ROOT_PASSWORD: str
     MINIO_ROOT_USER: str
     S3_BUCKET: str
+    S3_HOST: str
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")

@@ -6,6 +6,7 @@ class JobStatus(Enum):
     RUNNING = "RUNNING"
     DONE = "DONE"
     FAILED = "FAILED"
+    CANCELLED = "CANCELLED"
 
 class KafkaJobObject(BaseModel):
     id: str

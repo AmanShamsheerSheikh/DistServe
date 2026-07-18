@@ -1,6 +1,6 @@
 import runpod
 from engine import init_engine
-# from db import init_redis
+from db import init_db
 from runpod.serverless.utils.rp_validator import validate
 from discom.constants import runpod_schema
 from generator import token_generator
@@ -21,7 +21,7 @@ async def handler(job):
     }
 
 async def initializations():
-    # await init_redis()
+    await init_db()
     await init_engine()
 
 if __name__ == "__main__":

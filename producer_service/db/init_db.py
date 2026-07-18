@@ -34,9 +34,9 @@ async def initialize_db(app: FastAPI):
 
     app.s3 = boto3.client(
         "s3",
-        endpoint_url="http://localhost:9000",
-        aws_access_key_id="minioadmin",
-        aws_secret_access_key="minioadmin",
+        endpoint_url=s3_settings.S3_HOST,
+        aws_access_key_id=s3_settings.MINIO_ROOT_USER,
+        aws_secret_access_key=s3_settings.MINIO_ROOT_PASSWORD,
     )
 
     try:
