@@ -4,7 +4,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import Response
 from discom.queries import get_user
 
-AUTH_ROUTES = ["/generate"]
+AUTH_ROUTES = ["/translate"]
 
 class AuthMiddleWare(BaseHTTPMiddleware):
     def __init__(self, app):
