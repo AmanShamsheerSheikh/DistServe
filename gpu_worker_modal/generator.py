@@ -14,7 +14,7 @@ image = (
     .run_commands("pip install /root/distserver-common")
     .env({"HF_HUB_ENABLE_HF_TRANSFER": "1"})
     .add_local_python_source("db", "engine", "settings")
-    .add_local_file("chunks_counter.lua", remote_path="/root/chunks_counter.lua")
+    .add_local_file("gpu_worker_modal/chunks_counter.lua", remote_path="/root/chunks_counter.lua")
 )
 
 hf_cache_vol = modal.Volume.from_name("hf-cache", create_if_missing=True)

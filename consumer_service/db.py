@@ -29,7 +29,7 @@ async def init():
         statement_cache_size=0
     )
     await consumer.start()
-    gpu_worker = modal.Cls.from_name("distserve-gpu-worker", "GPUWorker")
+    gpu_worker = modal.Cls.from_name("distserve-gpu-worker", "GPUWorker")()
 
 def get_consumer():
     return consumer

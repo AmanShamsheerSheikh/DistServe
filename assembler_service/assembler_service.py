@@ -28,16 +28,18 @@ async def reassemble_document(chunks, s3_key, s3_client, bucket: str):
         doc.paragraphs[para.address["paragraph_index"]].text = para.result
 
     for table in tables:
-        selected_table = doc.tables[table.address["table_index"]]
-        cell_ids = table.address["cell_ids"]
-        translated_cells = json.loads(table.result)
+        try:
+            selected_table = doc.tables[table.address["table_index"]]
+            cell_ids = table.address["cell_ids"]
+            translated_cells = json.loads(table.result)
+            if len(translated_cells) != len(cell_ids):
+                # logger.error(f"Cell count mismatch for table_index={table.address['table_index']}, skipping")
+                continue
 
-        if len(translated_cells) != len(cell_ids):
-            # logger.error(f"Cell count mismatch for table_index={table.address['table_index']}, skipping")
-            continue
-
-        for (row_idx, col_idx), translated_text in zip(cell_ids, translated_cells):
-            selected_table.rows[row_idx].cells[col_idx].text = translated_text
+            for (row_idx, col_idx), translated_text in zip(cell_ids, translated_cells):
+                selected_table.rows[row_idx].cells[col_idx].text = translated_text
+        except Exception:
+            print(Exception)
 
     return doc
 
