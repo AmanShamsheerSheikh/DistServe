@@ -88,8 +88,6 @@ docker compose up -d
 
 This brings up Postgres (+ PgBouncer), Redis, Kafka (+ Zookeeper + Kafka UI on `:8080`), and MinIO (console on `:9001`). The `kafka-setup` container creates the `inference-request` topic on boot.
 
-> **Known gap:** the Kafka setup script only creates the `inference-request` topic, not the join topic the assembler consumes from (`KAFKA_JOIN_TOPIC`), and `KAFKA_AUTO_CREATE_TOPICS_ENABLE` is `false`. You'll need to create that topic manually (or add it to `kafka-setup`'s command list) before the assembler will receive anything.
-
 **Services** (each has its own `Dockerfile` and `requirements.txt`):
 
 ```bash
