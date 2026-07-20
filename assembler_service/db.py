@@ -13,7 +13,7 @@ async def init_db():
     global consumer, db_pool, s3
     consumer = AIOKafkaConsumer(
         kafka_settings.KAFKA_JOIN_TOPIC,
-        group_id=kafka_settings.KAFKA_GROUP_ID,
+        group_id=kafka_settings.KAFKA_ASSMENBLER_ID,
         bootstrap_servers=kafka_settings.KAFKA_BOOTSTRAP_SERVER,
         enable_auto_commit=False,
         auto_offset_reset="earliest"

@@ -47,6 +47,7 @@ class KafkaSettings(BaseSettings):
     KAFKA_INFERENCE_TOPIC: str
     KAFKA_GROUP_ID: str
     KAFKA_JOIN_TOPIC: str
+    KAFKA_ASSMENBLER_ID: str
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
 class S3Settings(BaseSettings):
