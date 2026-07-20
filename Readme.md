@@ -124,8 +124,6 @@ Register a user first via `POST /register_user` to get an API key.
 ## Known limitations
 
 - No benchmark numbers yet (TTFT/TPOT/P99 under load) — next milestone before this is interview-ready.
-- Join Kafka topic isn't auto-created by `docker-compose`'s `kafka-setup` step (see above).
-- No dead-letter/retry path if the GPU worker dispatch fails between commit and completion — a crashed chunk currently just sits at `RUNNING`.
 - `gpu_worker/` (RunPod) is dead code, kept for the migration story rather than deleted.
 
 ---
