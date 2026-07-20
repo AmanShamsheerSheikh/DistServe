@@ -8,7 +8,7 @@ Built as a systems portfolio project: the point isn't the translation itself, it
 
 ## Architecture
 
-![Architecture diagram](docs/image.png)
+![Architecture diagram](docs/architecture.png)
 
 ```
       Client

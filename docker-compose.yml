@@ -100,6 +100,7 @@ services:
         
         echo 'Creating Kafka topics...'
         kafka-topics --bootstrap-server kafka:29092 --create --if-not-exists --topic inference-request --partitions 8 --replication-factor 1
+        kafka-topics --bootstrap-server kafka:29092 --create --if-not-exists --topic join-chunk --partitions 8 --replication-factor 1
         
         echo 'All topics created successfully!'
 
