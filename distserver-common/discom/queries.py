@@ -91,14 +91,19 @@ async def bulk_insert_chunks(db: asyncpg.Connection, chunks: list[ChunkRecord]):
         ],
     )
 
-async def check_if_chunk_done(conn: asyncpg.Connection, chunk_id: str):
-    return await conn.fetchval(
-        "Select status from chunks where id = $1",
-        chunk_id
-    )
-
 async def get_chunk(conn: asyncpg.Connection, chunk_id):
-    return await conn.fetchrow(
+    row = await conn.fetchrow(
         "Select * from chunks where id = $1",
         chunk_id
+    )
+    if row is None:
+        return None
+    return ChunkRecord(
+        id=row["id"],
+        document_id=row["document_id"],
+        address=json.loads(row["address"]) if isinstance(row["address"], str) else row["address"],
+        chunk_index=row["chunk_index"],
+        source_text=row["source_text"],
+        status=row["status"],
+        result=row["result"],
     )
