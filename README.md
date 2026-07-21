@@ -122,6 +122,7 @@ Register a user first via `POST /register_user` to get an API key.
 ## Known limitations
 
 - `gpu_worker/` (RunPod) is dead code, kept for the migration story rather than deleted.
+- The consumer service does not start to consume the chunks until all the chunks of a document are queued, this will be fixed later by using the outbox pattern.
 
 ---
 
