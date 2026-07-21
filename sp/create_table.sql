@@ -25,6 +25,7 @@ CREATE TABLE IF NOT EXISTS chunks (
     address     JSONB,
     source_text TEXT,
     result      TEXT,
+    error       TEXT,
     created_at  TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     updated_at  TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 )
