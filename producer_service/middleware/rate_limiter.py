@@ -13,9 +13,13 @@ class RateLimitMiddleWare(BaseHTTPMiddleware):
             self.lua_script = file.read()
 
     async def check_if_allowed(self, redis: redis.Redis, key: str, duration: int):
-        execute_lua = redis.register_script(self.lua_script)
-        result = await execute_lua(keys=[key], args=[self.limit, duration])
-        return result
+        try:
+            execute_lua = redis.register_script(self.lua_script)
+            result = await execute_lua(keys=[key], args=[self.limit, duration])
+            return result
+        except Exception as e:
+            print(f"Rate limiter Redis check failed, failing open: {e}")
+            return True
 
     async def dispatch(self, request: Request, call_next):
         if request.url.path == "/register_user":

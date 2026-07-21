@@ -96,3 +96,9 @@ async def check_if_chunk_done(conn: asyncpg.Connection, chunk_id: str):
         "Select status from chunks where id = $1",
         chunk_id
     )
+
+async def get_chunk(conn: asyncpg.Connection, chunk_id):
+    return await conn.fetchrow(
+        "Select * from chunks where id = $1",
+        chunk_id
+    )

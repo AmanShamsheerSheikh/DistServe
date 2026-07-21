@@ -18,8 +18,7 @@ async def init_engine():
     )
     engine = AsyncLLMEngine.from_engine_args(engine_args)
     tokenizer = AutoTokenizer.from_pretrained(llm_settings.model_name)
-    _model_config = AutoConfig.from_pretrained(llm_settings.model_name)
-    context_length = _model_config.max_position_embeddings
+    context_length = tokenizer.model_max_length
 
 
 def get_engine() -> AsyncLLMEngine:

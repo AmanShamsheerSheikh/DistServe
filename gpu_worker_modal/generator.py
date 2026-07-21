@@ -53,7 +53,7 @@ class GPUWorker:
         from vllm import SamplingParams
         from settings import llm_settings, kafka_settings
         import traceback
-        from discom.queries import update_chunks, get_total_chunks, check_if_chunk_done
+        from discom.queries import update_chunks, get_total_chunks
         from discom.constants import JobStatus
         client = get_redis()
         pool = get_pg_pool()
@@ -73,16 +73,7 @@ class GPUWorker:
                 current_text = output.outputs[0].text
                 previous_text = current_text
             return previous_text
-        
-        async def check_if_chunk_processed(chunk_id):
-            async with pool.acquire() as connection:
-                status = await check_if_chunk_done(connection, chunk_id)
-            if status == JobStatus.DONE.value:
-                return True
-            return False
 
-        if check_if_chunk_processed(chunk_id):
-            return
         if text_type == "paragraph":
             messages = [
                 {

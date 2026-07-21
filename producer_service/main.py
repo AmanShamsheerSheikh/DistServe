@@ -92,9 +92,10 @@ async def translate(request: Request, file: UploadFile = File(...), db: asyncpg.
     try:
         async with app.state.kafka_producer.transaction():
             for chunk in chunks:
+                payload = json.dumps({"chunk_id": chunk.id}).encode("utf-8")
                 await app.state.kafka_producer.send_and_wait(
                     kafka_settings.KAFKA_INFERENCE_TOPIC,
-                    json.dumps(asdict(chunk)).encode("utf-8")
+                    payload
                 )
     except Exception as e:
         async with db.transaction():
