@@ -14,10 +14,10 @@ async def consumer_requests():
         async for msg in consumer:
             try:
                 request = json.loads(msg.value.decode('utf-8'))
-                async with db_pool.acquire as connection:
+                async with db_pool.acquire() as connection:
                     chunk: ChunkRecord = await get_chunk(connection, request["chunk_id"])
                 if chunk is None:
-                    print(f"Chunk {request["chunk_id"]} not found, discarding message")
+                    print(f"Chunk {request['chunk_id']} not found, discarding message")
                     await consumer.commit()
                     continue
 
