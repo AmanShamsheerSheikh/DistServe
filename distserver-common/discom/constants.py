@@ -8,6 +8,7 @@ class JobStatus(Enum):
     DONE = "DONE"
     FAILED = "FAILED"
     CANCELLED = "CANCELLED"
+    ASSEMBLY_FAILED = "ASSEMBLY_FAILED"
 
 class KafkaJobObject(BaseModel):
     id: str

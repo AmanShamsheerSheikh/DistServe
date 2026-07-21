@@ -42,6 +42,12 @@ async def update_chunks(conn: asyncpg.Connection, status: str, job_id: str, resu
         status, result, job_id, error
     )
 
+async def update_chunk(conn: asyncpg.Connection, status: str, chunk_id: str, error: str = None):
+    await conn.execute(
+        "UPDATE chunks SET status = $1, updated_at = NOW(), error = $2  WHERE id = $3",
+        status, error, chunk_id
+    )
+
 async def update_all_chunks(conn: asyncpg.Connection, status: str, document_id):
     await conn.execute(
         "UPDATE chunks SET status = $1, updated_at = NOW()  WHERE document_id = $2",

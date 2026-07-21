@@ -85,11 +85,19 @@ async def translate(request: Request, file: UploadFile = File(...), db: asyncpg.
     await asyncio.to_thread(app.s3.upload_fileobj, io.BytesIO(contents), s3_settings.S3_BUCKET, str(document_id))
     user_id = await get_user_id(db, request.headers.get("X-API-Key"))
     chunks = extract_chunks(document_id, io.BytesIO(contents))
-    job_id = await add_job(db, user_id, document_id, file.filename, len(chunks), JobStatus.PENDING.value)
-    await bulk_insert_chunks(db, chunks)
-    for chunk in chunks:
-        await app.state.kafka_producer.send_and_wait(kafka_settings.KAFKA_INFERENCE_TOPIC, json.dumps(asdict(chunk)).encode("utf-8"))
-    await app.state.kafka_producer.flush()
+    async with db.transaction():
+        job_id = await add_job(db, user_id, document_id, file.filename, len(chunks), JobStatus.PENDING.value)
+        await bulk_insert_chunks(db, chunks)
+
+        try:
+            for chunk in chunks:
+                await app.state.kafka_producer.send_and_wait(
+                    kafka_settings.KAFKA_INFERENCE_TOPIC,
+                    json.dumps(asdict(chunk)).encode("utf-8")
+                )
+            await app.state.kafka_producer.flush()
+        except Exception as e:
+            return {"error": "Failed to queue document for translation", "detail": str(e)}
     return {
         "job_id": job_id,
         "status": "queued"
