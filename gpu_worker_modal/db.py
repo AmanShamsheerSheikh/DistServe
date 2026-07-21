@@ -31,7 +31,6 @@ async def init_db():
     )
     kafka_producer = AIOKafkaProducer(
         bootstrap_servers=kafka_settings.KAFKA_BOOTSTRAP_SERVER,
-        transactional_id="distserve-producer-2",
         enable_idempotence=True,
         retry_backoff_ms=200,
         transaction_timeout_ms=60000,

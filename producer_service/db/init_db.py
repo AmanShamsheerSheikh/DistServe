@@ -39,6 +39,7 @@ async def initialize_db(app: FastAPI):
         bootstrap_servers=kafka_settings.KAFKA_BOOTSTRAP_SERVER,
         transactional_id="distserve-producer-1",
         enable_idempotence=True,
+        retry_backoff_ms=200,
         transaction_timeout_ms=60000,
         request_timeout_ms=40000
     )
