@@ -9,6 +9,7 @@ class JobStatus(Enum):
     FAILED = "FAILED"
     CANCELLED = "CANCELLED"
     ASSEMBLY_FAILED = "ASSEMBLY_FAILED"
+    DONE_WITH_ERRORS = "DONE_WITH_ERRORS"
 
 class KafkaJobObject(BaseModel):
     id: str
