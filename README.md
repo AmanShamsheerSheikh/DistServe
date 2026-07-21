@@ -121,7 +121,6 @@ Register a user first via `POST /register_user` to get an API key.
 
 ## Known limitations
 
-- No benchmark numbers yet (TTFT/TPOT/P99 under load) — next milestone before this is interview-ready.
 - `gpu_worker/` (RunPod) is dead code, kept for the migration story rather than deleted.
 
 ---
