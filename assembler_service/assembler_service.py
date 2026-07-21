@@ -69,6 +69,7 @@ async def assemble_requests():
             await asyncio.to_thread(s3.upload_fileobj, output_buffer, s3_settings.S3_BUCKET, s3_result_key)
             async with pool.acquire() as connection:
                 await update_job(connection, JobStatus.DONE.value, document_id, s3_result_key)
+            await consumer.commit()
     except Exception as e:
         print(f"Consumer loop crashed: {e}")
         async with pool.acquire() as connection:

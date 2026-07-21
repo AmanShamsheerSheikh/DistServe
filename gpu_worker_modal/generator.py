@@ -53,7 +53,7 @@ class GPUWorker:
         from vllm import SamplingParams
         from settings import llm_settings, kafka_settings
         import traceback
-        from discom.queries import update_chunks, get_total_chunks
+        from discom.queries import update_chunks, get_total_chunks, check_if_chunk_done
         from discom.constants import JobStatus
         client = get_redis()
         pool = get_pg_pool()
@@ -73,8 +73,16 @@ class GPUWorker:
                 current_text = output.outputs[0].text
                 previous_text = current_text
             return previous_text
+        
+        async def check_if_chunk_processed(chunk_id):
+            async with pool.acquire() as connection:
+                status = await check_if_chunk_done(connection, chunk_id)
+            if status == JobStatus.DONE.value:
+                return True
+            return False
 
-
+        if check_if_chunk_processed(chunk_id):
+            return
         if text_type == "paragraph":
             messages = [
                 {
@@ -111,12 +119,6 @@ class GPUWorker:
             )
             async with pool.acquire() as connection:
                 await update_chunks(connection, JobStatus.DONE.value, chunk_id, previous_text, None)
-            lua_script = get_lua_script()
-            is_all_chunks_done = await check_if_done(client, document_id, total_chunks, lua_script)
-            if is_all_chunks_done:
-                payload = json.dumps({"document_id": document_id}).encode("utf-8")
-                await producer.send_and_wait(kafka_settings.KAFKA_JOIN_TOPIC, payload)
-                await client.delete(document_id)
         except asyncio.TimeoutError:
             await engine.abort(chunk_id)
             async with pool.acquire() as connection:
@@ -131,4 +133,11 @@ class GPUWorker:
             async with pool.acquire() as connection:
                 await update_chunks(connection, JobStatus.FAILED.value, chunk_id, previous_text, tb_str)
             await engine.abort(chunk_id)
+        finally:
+            lua_script = get_lua_script()
+            is_all_chunks_done = await check_if_done(client, document_id, total_chunks, lua_script)
+            if is_all_chunks_done:
+                payload = json.dumps({"document_id": document_id}).encode("utf-8")
+                await producer.send_and_wait(kafka_settings.KAFKA_JOIN_TOPIC, payload)
+                await client.delete(document_id)
         return previous_text

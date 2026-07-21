@@ -16,7 +16,8 @@ async def init():
         group_id=kafka_settings.KAFKA_GROUP_ID,
         bootstrap_servers=kafka_settings.KAFKA_BOOTSTRAP_SERVER,
         enable_auto_commit=False,
-        auto_offset_reset="earliest"
+        auto_offset_reset="earliest",
+        isolation_level="read_committed"
     )
     db_pool = await asyncpg.create_pool(
         user=pg_settings.POSTGRES_USER,

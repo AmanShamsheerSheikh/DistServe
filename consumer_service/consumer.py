@@ -11,8 +11,6 @@ async def consumer_requests():
     gpu_worker = get_gpu_worker()
     try:
         async for msg in consumer:
-            print("consumed: ", msg.topic, msg.partition, msg.offset,
-                    msg.key, msg.value, msg.timestamp)
             request = json.loads(msg.value.decode('utf-8'))
             await gpu_worker.token_generator.spawn.aio(
                 source_text=request["source_text"],

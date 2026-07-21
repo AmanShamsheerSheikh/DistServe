@@ -90,3 +90,9 @@ async def bulk_insert_chunks(db: asyncpg.Connection, chunks: list[ChunkRecord]):
             for chunk in chunks
         ],
     )
+
+async def check_if_chunk_done(conn: asyncpg.Connection, chunk_id: str):
+    return await conn.fetchval(
+        "Select status from chunks where id = $1",
+        chunk_id
+    )

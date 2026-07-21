@@ -5,7 +5,8 @@ import redis.asyncio as redis
 from aiokafka import AIOKafkaProducer
 import boto3
 import botocore
-
+from redis.retry import Retry
+from redis.backoff import ExponentialBackoff
 
 async def initialize_db(app: FastAPI):
     app.state.db_pool = await asyncpg.create_pool(
@@ -19,17 +20,27 @@ async def initialize_db(app: FastAPI):
         statement_cache_size=0
     )
 
+    retry_strategy = Retry(backoff=ExponentialBackoff(cap=0.5, base=0.1), retries=3)
     redis_pool = redis.ConnectionPool(
         host=redis_settings.REDIS_HOST,
         port=redis_settings.REDIS_PORT,
         db=redis_settings.REDIS_DB,
         password=redis_settings.REDIS_PASSWORD,
-        decode_responses=redis_settings.REDIS_DECODE_RESPONSES
+        decode_responses=redis_settings.REDIS_DECODE_RESPONSES,
+        socket_timeout=1.0,
+        socket_connect_timeout=1.0,
+        retry=retry_strategy,
+        retry_on_timeout=True,
+        retry_on_error=[ConnectionError, TimeoutError],
     )
     app.state.redis = redis.Redis(connection_pool=redis_pool)
 
     app.state.kafka_producer = AIOKafkaProducer(
-        bootstrap_servers=kafka_settings.KAFKA_BOOTSTRAP_SERVER
+        bootstrap_servers=kafka_settings.KAFKA_BOOTSTRAP_SERVER,
+        transactional_id="distserve-producer-1",
+        enable_idempotence=True,
+        transaction_timeout_ms=60000,
+        request_timeout_ms=40000
     )
 
     app.s3 = boto3.client(

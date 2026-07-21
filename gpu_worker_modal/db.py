@@ -30,7 +30,12 @@ async def init_db():
         statement_cache_size=0
     )
     kafka_producer = AIOKafkaProducer(
-        bootstrap_servers=kafka_settings.KAFKA_BOOTSTRAP_SERVER
+        bootstrap_servers=kafka_settings.KAFKA_BOOTSTRAP_SERVER,
+        transactional_id="distserve-producer-2",
+        enable_idempotence=True,
+        retry_backoff_ms=200,
+        transaction_timeout_ms=60000,
+        request_timeout_ms=40000 
     )
     await kafka_producer.start()
     lua_path = os.path.join(os.path.dirname(__file__), "chunks_counter.lua")

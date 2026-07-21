@@ -7,7 +7,7 @@ import asyncpg
 from fastapi import Depends, FastAPI, Request, UploadFile, File
 from discom.constants import RegisterRequest
 from db.init_db import initialize_db
-from discom.queries import add_job, register_user, get_user_id, bulk_insert_chunks
+from discom.queries import add_job, register_user, get_user_id, bulk_insert_chunks, update_job
 from db.connections import get_db_connection
 from discom.constants import JobStatus
 import redis.asyncio as redis
@@ -89,15 +89,17 @@ async def translate(request: Request, file: UploadFile = File(...), db: asyncpg.
         job_id = await add_job(db, user_id, document_id, file.filename, len(chunks), JobStatus.PENDING.value)
         await bulk_insert_chunks(db, chunks)
 
-        try:
+    try:
+        async with app.state.kafka_producer.transaction():
             for chunk in chunks:
                 await app.state.kafka_producer.send_and_wait(
                     kafka_settings.KAFKA_INFERENCE_TOPIC,
                     json.dumps(asdict(chunk)).encode("utf-8")
                 )
-            await app.state.kafka_producer.flush()
-        except Exception as e:
-            return {"error": "Failed to queue document for translation", "detail": str(e)}
+    except Exception as e:
+        async with db.transaction():
+            await update_job(db, JobStatus.FAILED.value, document_id, None, f"Partial publish failure: {e}")
+        return {"error": "Failed to queue document for translation", "detail": str(e)}
     return {
         "job_id": job_id,
         "status": "queued"
